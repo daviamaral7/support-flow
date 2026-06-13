@@ -1,0 +1,2 @@
+-- Initial database migration for SupportFlow.
+-- Tables will be created in future migrations.
