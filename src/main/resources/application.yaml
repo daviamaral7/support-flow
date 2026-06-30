@@ -33,3 +33,9 @@ logging:
   level:
     org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
+
+support-flow:
+  admin:
+    name: ${ADMIN_NAME:Admin}
+    email: ${ADMIN_EMAIL:admin@supportflow.com}
+    password: ${ADMIN_PASSWORD:admin123}
