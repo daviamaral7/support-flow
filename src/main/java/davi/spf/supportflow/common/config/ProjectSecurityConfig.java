@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import davi.spf.supportflow.auth.security.CustomJwtAuthenticationConverter;
 import davi.spf.supportflow.auth.security.JwtProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -24,16 +25,24 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ProjectSecurityConfig {
 
     @Bean
-    SecurityFilterChain defaultSecurity(HttpSecurity http) throws Exception {
+    SecurityFilterChain defaultSecurity(HttpSecurity http,
+                                        CustomJwtAuthenticationConverter customJwtAuthenticationConverter
+    ) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("auth/login","/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/auth/login", "/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/users/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                )
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter))
                 );
+
         return http.build();
     }
 
