@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleResourceNotFoundException(ResourceNotFoundException e, HttpServletRequest servletRequest) {
+    public ResponseEntity<ErrorResponseDTO> handleResourceNotFoundException(ResourceNotFoundException e,
+                                                                            HttpServletRequest servletRequest) {
         ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 404,
@@ -22,5 +23,20 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBusinessRuleException(BusinessRuleException e,
+                                                                        HttpServletRequest servletRequest){
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                422,
+                "Invalid Request",
+                e.getMessage(),
+                servletRequest.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(error);
     }
 }
