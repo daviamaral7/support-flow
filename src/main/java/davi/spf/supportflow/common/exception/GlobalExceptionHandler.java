@@ -54,4 +54,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
+
+    @ExceptionHandler(UserNotActiveException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserNotActiveException(UserNotActiveException e,
+                                                                                 HttpServletRequest servletRequest) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                400,
+                "Not active",
+                e.getMessage(),
+                servletRequest.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 }

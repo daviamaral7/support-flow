@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id){
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.findUserById(id));
     }
 
@@ -32,5 +33,19 @@ public class UserController {
         UserResponseDTO response = userService.createUser(dto);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/block")
+    public ResponseEntity<Void> blockUser(@PathVariable Long id, Authentication authentication) {
+        userService.blockUser(id, authentication);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/unblock")
+    public ResponseEntity<Void> unblockUser(@PathVariable Long id, Authentication authentication) {
+        userService.unblockUser(id, authentication);
+
+        return ResponseEntity.noContent().build();
     }
 }
