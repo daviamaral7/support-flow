@@ -80,6 +80,7 @@ public class UserService {
         if (id.equals(adm.getId())) {
             throw new BusinessRuleException("Cannot self unblock");
         }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -88,5 +89,22 @@ public class UserService {
         }
 
         user.setStatus(UserStatus.ACTIVE);
+    }
+
+    public void deleteUser(Long id, Authentication authentication) {
+        User adm = userRepository.findByEmail(authentication.getName()).orElseThrow();
+
+        if (id.equals(adm.getId())) {
+            throw new BusinessRuleException("Cannot self delete");
+        }
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new BusinessRuleException("User already deleted");
+        }
+
+        user.setStatus(UserStatus.DELETED);
     }
 }

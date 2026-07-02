@@ -48,4 +48,11 @@ public class UserController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/delete")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id, Authentication authentication) {
+        userService.deleteUser(id, authentication);
+
+        return ResponseEntity.noContent().build();
+    }
 }
