@@ -3,5 +3,5 @@ package davi.spf.supportflow.user.enums;
 public enum UserRole {
     ADMIN,
     TECHNICIAN,
-    CUSTOMER
+    EMPLOYEE
 }

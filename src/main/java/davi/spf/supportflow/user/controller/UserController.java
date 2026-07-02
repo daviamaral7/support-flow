@@ -1,15 +1,14 @@
 package davi.spf.supportflow.user.controller;
 
+import davi.spf.supportflow.user.dto.UserRequestDTO;
 import davi.spf.supportflow.user.dto.UserResponseDTO;
 import davi.spf.supportflow.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -26,5 +25,12 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id){
         return ResponseEntity.ok(userService.findUserById(id));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Valid UserRequestDTO dto) {
+        UserResponseDTO response = userService.createUser(dto);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,8 @@
 package davi.spf.supportflow.user.service;
 
+import davi.spf.supportflow.common.exception.ResourceAlreadyExistsException;
 import davi.spf.supportflow.common.exception.ResourceNotFoundException;
+import davi.spf.supportflow.user.dto.UserRequestDTO;
 import davi.spf.supportflow.user.dto.UserResponseDTO;
 import davi.spf.supportflow.user.entity.User;
 import davi.spf.supportflow.user.enums.UserStatus;
@@ -9,6 +11,7 @@ import davi.spf.supportflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public Page<UserResponseDTO> listUsers(Pageable pageable) {
@@ -31,5 +35,22 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return mapper.toResponse(user);
+    }
+
+    public UserResponseDTO createUser(UserRequestDTO dto) {
+        String normalizedEmail = dto.email().trim().toLowerCase();
+
+        if (userRepository.existsByEmail(normalizedEmail)) {
+            throw new ResourceAlreadyExistsException("Email already in use");
+        }
+
+        User user = mapper.toEntity(dto);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setEmail(normalizedEmail);
+        user.setPassword(passwordEncoder.encode(dto.password()));
+
+        User savedUser = userRepository.save(user);
+
+        return mapper.toResponse(savedUser);
     }
 }
