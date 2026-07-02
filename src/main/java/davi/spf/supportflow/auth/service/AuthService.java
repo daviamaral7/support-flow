@@ -22,7 +22,9 @@ public class AuthService {
     private final JWTService jwtService;
 
     public LoginResponse login(LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.email())
+        String normalizedEmail = loginRequest.email().trim().toLowerCase();
+
+        User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
         if (user.getStatus() != UserStatus.ACTIVE) {

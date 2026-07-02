@@ -27,6 +27,11 @@ public class UserService {
     private final UserMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
+    private User getAuthenticatedUser(Authentication authentication) {
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+    }
+
     @Transactional(readOnly = true)
     public Page<UserResponseDTO> listUsers(Pageable pageable) {
         return userRepository.findAllByStatusNot(UserStatus.DELETED, pageable).map(mapper::toResponse);
@@ -34,7 +39,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponseDTO findUserById(Long id) {
-        User user = userRepository.findById(id)
+
+        User user = userRepository.findByIdAndStatusNot(id, UserStatus.DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return mapper.toResponse(user);
@@ -58,7 +64,7 @@ public class UserService {
     }
 
     public void blockUser(Long id, Authentication authentication) {
-        User adm = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User adm = getAuthenticatedUser(authentication);
 
         if (id.equals(adm.getId())) {
             throw new BusinessRuleException("Cannot self block");
@@ -67,15 +73,19 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (user.getStatus() != UserStatus.ACTIVE) {
-            throw new UserNotActiveException("User is not active");
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new BusinessRuleException("Cannot block a deleted user");
+        }
+
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            throw new BusinessRuleException("User is already blocked");
         }
 
         user.setStatus(UserStatus.BLOCKED);
     }
 
     public void unblockUser(Long id, Authentication authentication) {
-        User adm = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User adm = getAuthenticatedUser(authentication);
 
         if (id.equals(adm.getId())) {
             throw new BusinessRuleException("Cannot self unblock");
@@ -85,14 +95,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getStatus() != UserStatus.BLOCKED) {
-            throw new UserNotActiveException("User is not active");
+            throw new UserNotActiveException("User is not blocked");
         }
 
         user.setStatus(UserStatus.ACTIVE);
     }
 
     public void deleteUser(Long id, Authentication authentication) {
-        User adm = userRepository.findByEmail(authentication.getName()).orElseThrow();
+        User adm = getAuthenticatedUser(authentication);
 
         if (id.equals(adm.getId())) {
             throw new BusinessRuleException("Cannot self delete");
