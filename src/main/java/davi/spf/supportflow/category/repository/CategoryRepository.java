@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Page<Category> findAllByActiveTrue(Pageable pageable);
+
+    boolean existsByName(String name);
 }

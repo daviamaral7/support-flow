@@ -1,9 +1,11 @@
 package davi.spf.supportflow.category.service;
 
+import davi.spf.supportflow.category.dto.CategoryRequestDTO;
 import davi.spf.supportflow.category.dto.CategoryResponseDTO;
 import davi.spf.supportflow.category.entity.Category;
 import davi.spf.supportflow.category.mapper.CategoryMapper;
 import davi.spf.supportflow.category.repository.CategoryRepository;
+import davi.spf.supportflow.common.exception.ResourceAlreadyExistsException;
 import davi.spf.supportflow.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,5 +32,17 @@ public class CategoryService {
                 .orElseThrow(()-> new ResourceNotFoundException("Category not found"));
 
         return mapper.toResponse(category);
+    }
+
+    public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
+        if(categoryRepository.existsByName(dto.name())){
+            throw new ResourceAlreadyExistsException("Category already exists");
+        }
+
+        Category category = mapper.toEntity(dto);
+
+        Category savedCategory = categoryRepository.save(category);
+
+        return mapper.toResponse(savedCategory);
     }
 }
