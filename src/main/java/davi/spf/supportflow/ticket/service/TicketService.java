@@ -11,8 +11,12 @@ import davi.spf.supportflow.ticket.enums.TicketStatus;
 import davi.spf.supportflow.ticket.mapper.TicketMapper;
 import davi.spf.supportflow.ticket.repository.TicketRepository;
 import davi.spf.supportflow.user.entity.User;
+import davi.spf.supportflow.user.enums.UserRole;
 import davi.spf.supportflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +31,9 @@ public class TicketService {
     private final CategoryRepository categoryRepository;
     private final TicketMapper mapper;
 
+
     public TicketResponseDTO createTicket(TicketRequestDTO dto, Authentication authentication) {
-        User createdBy = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+        User createdBy = getAuthenticatedUser(authentication);
 
         Category category = categoryRepository.findById(dto.categoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
@@ -48,5 +52,53 @@ public class TicketService {
         Ticket savedTicket = ticketRepository.save(ticket);
 
         return mapper.toResponse(savedTicket);
+    }
+
+    public Page<TicketResponseDTO> listTickets(Authentication authentication, Pageable pageable) {
+        User authenticatedUser = getAuthenticatedUser(authentication);
+
+        UserRole role = authenticatedUser.getRole();
+
+        Page<Ticket> tickets = switch (role) {
+            case ADMIN, TECHNICIAN -> ticketRepository.findAll(pageable);
+            case EMPLOYEE -> ticketRepository.findByCreatedBy(authenticatedUser, pageable);
+        };
+
+        return tickets.map(mapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public TicketResponseDTO getTicketById(Long id, Authentication authentication) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        User authenticatedUser = getAuthenticatedUser(authentication);
+
+        validateTicketAccess(ticket, authenticatedUser, authentication);
+
+        return mapper.toResponse(ticket);
+    }
+
+    private User getAuthenticatedUser(Authentication authentication) {
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
+    }
+
+    private boolean hasRole(Authentication authentication, String role) {
+        return authentication.getAuthorities().stream()
+                .anyMatch(authority -> ("ROLE_" + role).equals(authority.getAuthority()));
+    }
+
+    private void validateTicketAccess(Ticket ticket, User authenticatedUser, Authentication authentication) {
+        boolean isAdmin = hasRole(authentication, "ADMIN");
+        boolean isTechnician = hasRole(authentication, "TECHNICIAN");
+
+        if (isAdmin || isTechnician) {
+            return;
+        }
+
+        if (!ticket.getCreatedBy().getId().equals(authenticatedUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to access this ticket");
+        }
     }
 }

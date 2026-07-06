@@ -5,12 +5,11 @@ import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
 import davi.spf.supportflow.ticket.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,5 +23,17 @@ public class TicketController {
                                                           Authentication authentication) {
 
         return ResponseEntity.ok(ticketService.createTicket(dto, authentication));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<TicketResponseDTO>> listTickets(Authentication authentication,
+                                                               Pageable pageable) {
+
+        return ResponseEntity.ok(ticketService.listTickets(authentication, pageable));
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable Long id, Authentication authentication) {
+        return ResponseEntity.ok(ticketService.getTicketById(id, authentication));
     }
 }
