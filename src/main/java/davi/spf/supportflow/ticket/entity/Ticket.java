@@ -67,4 +67,9 @@ public class Ticket {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void assignTo(User technician) {
+        this.assignedTo = technician;
+        this.status = TicketStatus.IN_PROGRESS;
+    }
 }

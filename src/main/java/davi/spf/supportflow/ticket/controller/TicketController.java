@@ -1,5 +1,6 @@
 package davi.spf.supportflow.ticket.controller;
 
+import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
 import davi.spf.supportflow.ticket.service.TicketService;
@@ -32,8 +33,22 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.listTickets(authentication, pageable));
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(ticketService.getTicketById(id, authentication));
+    }
+
+    @PatchMapping("/{id}/assign")
+    public ResponseEntity<TicketResponseDTO> assignTicket(@PathVariable Long id, @RequestBody @Valid AssignTicketRequestDTO technicianId) {
+        TicketResponseDTO response = ticketService.assignTicket(technicianId, id);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/claim")
+    public ResponseEntity<TicketResponseDTO> claimTicket(@PathVariable Long id, Authentication authentication) {
+        TicketResponseDTO response = ticketService.claimTicket(id, authentication);
+
+        return ResponseEntity.ok(response);
     }
 }

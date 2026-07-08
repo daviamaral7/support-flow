@@ -38,6 +38,8 @@ public class ProjectSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login", "/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/categories").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/tickets/{id}/assign").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/tickets/{id}/claim").hasRole("TECHNICIAN")
                         .requestMatchers("/users/**", "/categories/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
