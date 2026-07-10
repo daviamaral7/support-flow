@@ -71,8 +71,7 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public TicketResponseDTO getTicketById(Long id, Authentication authentication) {
-        Ticket ticket = ticketRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+        Ticket ticket = findTicketByIdOrThrow(id);
 
         User authenticatedUser = getAuthenticatedUser(authentication);
 
@@ -102,8 +101,7 @@ public class TicketService {
     }
 
     public TicketResponseDTO claimTicket(Long id, Authentication authentication) {
-        User technician = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Authenticated technician not found"));
+        User technician = getAuthenticatedUser(authentication);
 
         validateTechnicianCanReceiveTicket(technician);
 
@@ -118,6 +116,48 @@ public class TicketService {
         }
 
         ticket.assignTo(technician);
+        return mapper.toResponse(ticket);
+    }
+
+    public TicketResponseDTO resolveTicket(Long ticketId, Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+        Ticket ticket = findTicketByIdOrThrow(ticketId);
+
+        if (ticket.getStatus() != TicketStatus.IN_PROGRESS) {
+            throw new BusinessRuleException("Only tickets in progress can be resolved");
+        }
+
+        validateUserCanResolveTicket(user, ticket);
+
+        ticket.resolve();
+
+        return mapper.toResponse(ticket);
+    }
+
+    public TicketResponseDTO closeTicket(Long ticketId, Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+        Ticket ticket = findTicketByIdOrThrow(ticketId);
+
+        if (ticket.getStatus() != TicketStatus.RESOLVED) {
+            throw new BusinessRuleException("Only resolved tickets can be closed");
+        }
+
+        validateUserCanCloseTicket(user, ticket);
+
+        ticket.close();
+
+        return mapper.toResponse(ticket);
+    }
+
+    public TicketResponseDTO cancelTicket(Long ticketId, Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+        Ticket ticket = findTicketByIdOrThrow(ticketId);
+
+        validateTicketCanBeCancelled(ticket);
+        validateUserCanCancelTicket(user, ticket);
+
+        ticket.cancel();
+
         return mapper.toResponse(ticket);
     }
 
@@ -162,6 +202,48 @@ public class TicketService {
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new BusinessRuleException("Technician must be active");
+        }
+    }
+
+    private void validateUserCanResolveTicket(User user, Ticket ticket) {
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+
+        if (ticket.getAssignedTo() == null) {
+            throw new BusinessRuleException("Ticket is not assigned to any technician");
+        }
+
+        if (!user.getId().equals(ticket.getAssignedTo().getId())) {
+            throw new BusinessRuleException("You are not allowed to resolve this ticket");
+        }
+    }
+
+    private void validateUserCanCloseTicket(User user, Ticket ticket) {
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+
+        if (!user.getId().equals(ticket.getCreatedBy().getId())) {
+            throw new BusinessRuleException("Only the employee who opened the ticket can close it");
+        }
+    }
+
+    private void validateTicketCanBeCancelled(Ticket ticket) {
+        if (ticket.getStatus() == TicketStatus.RESOLVED ||
+                ticket.getStatus() == TicketStatus.CLOSED ||
+                ticket.getStatus() == TicketStatus.CANCELLED) {
+            throw new BusinessRuleException("Ticket cannot be cancelled");
+        }
+    }
+
+    private void validateUserCanCancelTicket(User user, Ticket ticket) {
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+
+        if (!user.getId().equals(ticket.getCreatedBy().getId())) {
+            throw new BusinessRuleException("Only the employee who opened the ticket can cancel it");
         }
     }
 }

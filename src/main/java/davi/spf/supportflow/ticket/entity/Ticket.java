@@ -72,4 +72,18 @@ public class Ticket {
         this.assignedTo = technician;
         this.status = TicketStatus.IN_PROGRESS;
     }
+
+    public void resolve() {
+        this.status = TicketStatus.RESOLVED;
+    }
+
+    public void close() {
+        this.status = TicketStatus.CLOSED;
+        this.closedAt = LocalDateTime.now();
+    }
+
+    public void cancel() {
+        this.status = TicketStatus.CANCELLED;
+        this.closedAt = LocalDateTime.now();
+    }
 }

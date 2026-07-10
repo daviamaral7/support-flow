@@ -51,4 +51,25 @@ public class TicketController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{id}/resolve")
+    public ResponseEntity<TicketResponseDTO> resolveTicket(@PathVariable Long id, Authentication authentication) {
+        TicketResponseDTO response = ticketService.resolveTicket(id, authentication);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/close")
+    public ResponseEntity<TicketResponseDTO> closeTicket(@PathVariable Long id, Authentication authentication) {
+        TicketResponseDTO response = ticketService.closeTicket(id, authentication);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<TicketResponseDTO> cancelTicket(@PathVariable Long id, Authentication authentication) {
+        TicketResponseDTO response = ticketService.cancelTicket(id, authentication);
+
+        return ResponseEntity.ok(response);
+    }
 }
