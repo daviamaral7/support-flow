@@ -35,7 +35,6 @@ public class TicketService {
     private final TicketMapper mapper;
     private final TicketHistoryService ticketHistoryService;
 
-
     public TicketResponseDTO createTicket(TicketRequestDTO dto, Authentication authentication) {
         User createdBy = getAuthenticatedUser(authentication);
 

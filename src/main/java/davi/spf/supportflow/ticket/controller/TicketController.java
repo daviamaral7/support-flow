@@ -1,5 +1,8 @@
 package davi.spf.supportflow.ticket.controller;
 
+import davi.spf.supportflow.comment.dto.TicketCommentRequestDTO;
+import davi.spf.supportflow.comment.dto.TicketCommentResponseDTO;
+import davi.spf.supportflow.comment.service.TicketCommentService;
 import davi.spf.supportflow.history.dto.TicketHistoryResponseDTO;
 import davi.spf.supportflow.history.service.TicketHistoryService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
@@ -10,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +25,13 @@ public class TicketController {
 
     private final TicketService ticketService;
     private final TicketHistoryService ticketHistoryService;
+    private final TicketCommentService ticketCommentService;
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody @Valid TicketRequestDTO dto,
                                                           Authentication authentication) {
 
-        return ResponseEntity.ok(ticketService.createTicket(dto, authentication));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.createTicket(dto, authentication));
     }
 
     @GetMapping
@@ -91,5 +96,26 @@ public class TicketController {
         );
 
         return ResponseEntity.ok(history);
+    }
+
+    @PostMapping("/{id}/comments")
+    public ResponseEntity<TicketCommentResponseDTO> makeComment(@PathVariable Long id,
+                                                                @RequestBody @Valid TicketCommentRequestDTO dto,
+                                                                Authentication authentication) {
+
+        TicketCommentResponseDTO response = ticketCommentService.makeComment(id, dto.comment(), authentication);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<Page<TicketCommentResponseDTO>> listComments(@PathVariable long id,
+                                                                       Authentication authentication,
+                                                                       Pageable pageable) {
+
+        Page<TicketCommentResponseDTO> response = ticketCommentService.listComments(id, authentication, pageable);
+
+        return ResponseEntity.ok(response);
+
     }
 }
