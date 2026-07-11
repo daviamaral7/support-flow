@@ -43,4 +43,13 @@ public class TicketHistory {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public static TicketHistory create(Ticket ticket, TicketActionHistory action, String description, User performedBy) {
+        TicketHistory history = new TicketHistory();
+        history.setTicket(ticket);
+        history.setAction(action);
+        history.setDescription(description);
+        history.setPerformedBy(performedBy);
+        return history;
+    }
 }

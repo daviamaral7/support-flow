@@ -4,6 +4,7 @@ import davi.spf.supportflow.category.entity.Category;
 import davi.spf.supportflow.category.repository.CategoryRepository;
 import davi.spf.supportflow.common.exception.BusinessRuleException;
 import davi.spf.supportflow.common.exception.ResourceNotFoundException;
+import davi.spf.supportflow.history.service.TicketHistoryService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
@@ -32,6 +33,7 @@ public class TicketService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final TicketMapper mapper;
+    private final TicketHistoryService ticketHistoryService;
 
 
     public TicketResponseDTO createTicket(TicketRequestDTO dto, Authentication authentication) {
@@ -52,6 +54,8 @@ public class TicketService {
         ticket.setClosedAt(null);
 
         Ticket savedTicket = ticketRepository.save(ticket);
+
+        ticketHistoryService.registerCreated(savedTicket, createdBy);
 
         return mapper.toResponse(savedTicket);
     }
@@ -80,7 +84,8 @@ public class TicketService {
         return mapper.toResponse(ticket);
     }
 
-    public TicketResponseDTO assignTicket(AssignTicketRequestDTO dto, Long ticketId) {
+    public TicketResponseDTO assignTicket(AssignTicketRequestDTO dto, Long ticketId, Authentication authentication) {
+        User admin = getAuthenticatedUser(authentication);
         User technician = userRepository.findById(dto.technicianId())
                 .orElseThrow(() -> new ResourceNotFoundException("Technician not found"));
 
@@ -97,6 +102,9 @@ public class TicketService {
         }
 
         ticket.assignTo(technician);
+
+        ticketHistoryService.registerAssigned(ticket, admin, technician);
+
         return mapper.toResponse(ticket);
     }
 
@@ -116,6 +124,9 @@ public class TicketService {
         }
 
         ticket.assignTo(technician);
+
+        ticketHistoryService.registerClaimed(ticket, technician);
+
         return mapper.toResponse(ticket);
     }
 
@@ -130,6 +141,8 @@ public class TicketService {
         validateUserCanResolveTicket(user, ticket);
 
         ticket.resolve();
+
+        ticketHistoryService.registerResolved(ticket, user);
 
         return mapper.toResponse(ticket);
     }
@@ -146,6 +159,8 @@ public class TicketService {
 
         ticket.close();
 
+        ticketHistoryService.registerClosed(ticket, user);
+
         return mapper.toResponse(ticket);
     }
 
@@ -157,6 +172,8 @@ public class TicketService {
         validateUserCanCancelTicket(user, ticket);
 
         ticket.cancel();
+
+        ticketHistoryService.registerCancelled(ticket, user);
 
         return mapper.toResponse(ticket);
     }

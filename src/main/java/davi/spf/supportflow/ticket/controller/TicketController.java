@@ -1,5 +1,7 @@
 package davi.spf.supportflow.ticket.controller;
 
+import davi.spf.supportflow.history.dto.TicketHistoryResponseDTO;
+import davi.spf.supportflow.history.service.TicketHistoryService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final TicketHistoryService ticketHistoryService;
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody @Valid TicketRequestDTO dto,
@@ -39,8 +42,11 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/assign")
-    public ResponseEntity<TicketResponseDTO> assignTicket(@PathVariable Long id, @RequestBody @Valid AssignTicketRequestDTO technicianId) {
-        TicketResponseDTO response = ticketService.assignTicket(technicianId, id);
+    public ResponseEntity<TicketResponseDTO> assignTicket(@PathVariable Long id,
+                                                          @RequestBody @Valid AssignTicketRequestDTO technicianId,
+                                                          Authentication authentication) {
+
+        TicketResponseDTO response = ticketService.assignTicket(technicianId, id, authentication);
 
         return ResponseEntity.ok(response);
     }
@@ -71,5 +77,19 @@ public class TicketController {
         TicketResponseDTO response = ticketService.cancelTicket(id, authentication);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{ticketId}/history")
+    public ResponseEntity<Page<TicketHistoryResponseDTO>> listHistory(@PathVariable Long ticketId,
+                                                                      Authentication authentication,
+                                                                      Pageable pageable) {
+
+        Page<TicketHistoryResponseDTO> history = ticketHistoryService.listHistory(
+                ticketId,
+                authentication,
+                pageable
+        );
+
+        return ResponseEntity.ok(history);
     }
 }
