@@ -6,6 +6,7 @@ import davi.spf.supportflow.comment.service.TicketCommentService;
 import davi.spf.supportflow.history.dto.TicketHistoryResponseDTO;
 import davi.spf.supportflow.history.service.TicketHistoryService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
+import davi.spf.supportflow.ticket.dto.TicketFilterDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
 import davi.spf.supportflow.ticket.service.TicketService;
@@ -35,10 +36,11 @@ public class TicketController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TicketResponseDTO>> listTickets(Authentication authentication,
+    public ResponseEntity<Page<TicketResponseDTO>> listTickets(@ModelAttribute TicketFilterDTO filterDTO,
+                                                               Authentication authentication,
                                                                Pageable pageable) {
 
-        return ResponseEntity.ok(ticketService.listTickets(authentication, pageable));
+        return ResponseEntity.ok(ticketService.listTickets(filterDTO, authentication, pageable));
     }
 
     @GetMapping("/{id}")

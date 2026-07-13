@@ -6,12 +6,14 @@ import davi.spf.supportflow.common.exception.BusinessRuleException;
 import davi.spf.supportflow.common.exception.ResourceNotFoundException;
 import davi.spf.supportflow.history.service.TicketHistoryService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
+import davi.spf.supportflow.ticket.dto.TicketFilterDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
 import davi.spf.supportflow.ticket.entity.Ticket;
 import davi.spf.supportflow.ticket.enums.TicketStatus;
 import davi.spf.supportflow.ticket.mapper.TicketMapper;
 import davi.spf.supportflow.ticket.repository.TicketRepository;
+import davi.spf.supportflow.ticket.specification.TicketSpecification;
 import davi.spf.supportflow.user.entity.User;
 import davi.spf.supportflow.user.enums.UserRole;
 import davi.spf.supportflow.user.enums.UserStatus;
@@ -19,6 +21,7 @@ import davi.spf.supportflow.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -59,15 +62,20 @@ public class TicketService {
         return mapper.toResponse(savedTicket);
     }
 
-    public Page<TicketResponseDTO> listTickets(Authentication authentication, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<TicketResponseDTO> listTickets(TicketFilterDTO filter,
+                                               Authentication authentication,
+                                               Pageable pageable) {
+
         User authenticatedUser = getAuthenticatedUser(authentication);
 
-        UserRole role = authenticatedUser.getRole();
+        Specification<Ticket> spec = TicketSpecification.withFilters(filter);
 
-        Page<Ticket> tickets = switch (role) {
-            case ADMIN, TECHNICIAN -> ticketRepository.findAll(pageable);
-            case EMPLOYEE -> ticketRepository.findByCreatedBy(authenticatedUser, pageable);
-        };
+        if (authenticatedUser.getRole() == UserRole.EMPLOYEE) {
+            spec = spec.and(createdBy(authenticatedUser.getId()));
+        }
+
+        Page<Ticket> tickets = ticketRepository.findAll(spec, pageable);
 
         return tickets.map(mapper::toResponse);
     }
@@ -261,5 +269,10 @@ public class TicketService {
         if (!user.getId().equals(ticket.getCreatedBy().getId())) {
             throw new BusinessRuleException("Only the employee who opened the ticket can cancel it");
         }
+    }
+
+    public static Specification<Ticket> createdBy(Long userId) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("createdBy").get("id"), userId);
     }
 }
