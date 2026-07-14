@@ -5,6 +5,9 @@ import davi.spf.supportflow.comment.dto.TicketCommentResponseDTO;
 import davi.spf.supportflow.comment.service.TicketCommentService;
 import davi.spf.supportflow.history.dto.TicketHistoryResponseDTO;
 import davi.spf.supportflow.history.service.TicketHistoryService;
+import davi.spf.supportflow.rating.dto.TicketRatingRequestDTO;
+import davi.spf.supportflow.rating.dto.TicketRatingResponseDTO;
+import davi.spf.supportflow.rating.service.TicketRatingService;
 import davi.spf.supportflow.ticket.dto.AssignTicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketFilterDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
@@ -27,6 +30,7 @@ public class TicketController {
     private final TicketService ticketService;
     private final TicketHistoryService ticketHistoryService;
     private final TicketCommentService ticketCommentService;
+    private final TicketRatingService ticketRatingService;
 
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody @Valid TicketRequestDTO dto,
@@ -119,5 +123,22 @@ public class TicketController {
 
         return ResponseEntity.ok(response);
 
+    }
+
+    @PostMapping("/{ticketId}/rating")
+    public ResponseEntity<TicketRatingResponseDTO> createRating(@PathVariable Long ticketId,
+                                                                @RequestBody @Valid TicketRatingRequestDTO dto,
+                                                                Authentication authentication) {
+
+        TicketRatingResponseDTO response = ticketRatingService.createRating(dto, authentication, ticketId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{ticketId}/rating")
+    public ResponseEntity<TicketRatingResponseDTO> getRatingByTicket(@PathVariable Long ticketId,
+                                                                     Authentication authentication) {
+
+        return ResponseEntity.ok(ticketRatingService.getRatingByTicket(ticketId, authentication));
     }
 }

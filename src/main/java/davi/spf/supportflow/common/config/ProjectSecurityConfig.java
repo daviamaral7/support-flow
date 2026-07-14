@@ -44,6 +44,7 @@ public class ProjectSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/tickets/{id}/close").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/users/**", "/categories/**").hasRole("ADMIN")
                         .requestMatchers("/dashboard/**").hasAnyRole("ADMIN", "TECHNICIAN")
+                        .requestMatchers(HttpMethod.POST, "/tickets/*/rating").hasRole("EMPLOYEE")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
