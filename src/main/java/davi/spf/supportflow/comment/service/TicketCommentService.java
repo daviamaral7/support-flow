@@ -103,6 +103,8 @@ public class TicketCommentService {
             if (ticket.getAssignedTo() == null || !ticket.getAssignedTo().getId().equals(user.getId())) {
                 throw new BusinessRuleException("You are not allowed to access comments for this ticket");
             }
+
+            return;
         }
 
         if (!ticket.getCreatedBy().getId().equals(user.getId())) {
