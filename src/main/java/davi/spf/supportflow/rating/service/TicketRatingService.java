@@ -40,7 +40,7 @@ public class TicketRatingService {
         }
 
         if (!ticket.getCreatedBy().getId().equals(user.getId())) {
-            throw new BusinessRuleException("You can only rate tickets created by you");
+            throw new AccessDeniedException("You can only rate tickets created by you");
         }
 
         if (ticketRatingRepository.existsByTicketId(ticketId)) {
