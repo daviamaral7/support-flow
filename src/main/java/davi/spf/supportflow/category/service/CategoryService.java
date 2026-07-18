@@ -43,11 +43,15 @@ public class CategoryService {
     }
 
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
-        if (categoryRepository.existsByName(dto.name())) {
+        String normalizedName = dto.name().trim();
+
+        if (categoryRepository.existsByNameIgnoreCase(normalizedName)) {
             throw new ResourceAlreadyExistsException("Category already exists");
         }
 
+
         Category category = mapper.toEntity(dto);
+        category.setName(normalizedName);
 
         Category savedCategory = categoryRepository.save(category);
 
