@@ -26,6 +26,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha
+
 security:
   jwt:
     private-key: classpath:keys/private.pem

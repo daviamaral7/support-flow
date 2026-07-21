@@ -88,6 +88,7 @@ O projeto foi desenvolvido para praticar backend Java com regras de negócio, au
 - Bean Validation
 - Lombok
 - MapStruct
+- Springdoc OpenAPI / Swagger UI
 - Docker / Docker Compose
 - JUnit 5
 - Mockito
@@ -210,6 +211,20 @@ Por padrão, a API sobe em:
 
 ```text
 http://localhost:8080
+```
+
+## Swagger / OpenAPI
+
+A documentação interativa da API fica disponível em:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+Para testar endpoints protegidos pelo Swagger UI, faça login em `/auth/login`, copie o valor retornado em `accessToken` e use o botão **Authorize** informando apenas o JWT. O Swagger UI enviará o header:
+
+```http
+Authorization: Bearer <token>
 ```
 
 ## Banco de Dados e Migrations

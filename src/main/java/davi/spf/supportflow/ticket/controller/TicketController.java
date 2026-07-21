@@ -13,6 +13,9 @@ import davi.spf.supportflow.ticket.dto.TicketFilterDTO;
 import davi.spf.supportflow.ticket.dto.TicketRequestDTO;
 import davi.spf.supportflow.ticket.dto.TicketResponseDTO;
 import davi.spf.supportflow.ticket.service.TicketService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/tickets")
+@Tag(name = "4. Tickets", description = "Gestão de chamados, comentários, histórico e avaliações")
+@SecurityRequirement(name = "bearerAuth")
 public class TicketController {
 
     private final TicketService ticketService;
@@ -33,6 +38,7 @@ public class TicketController {
     private final TicketRatingService ticketRatingService;
 
     @PostMapping
+    @Operation(summary = "Cria um ticket")
     public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody @Valid TicketRequestDTO dto,
                                                           Authentication authentication) {
 
@@ -40,6 +46,7 @@ public class TicketController {
     }
 
     @GetMapping
+    @Operation(summary = "Lista tickets com filtros opcionais")
     public ResponseEntity<Page<TicketResponseDTO>> listTickets(@ModelAttribute TicketFilterDTO filterDTO,
                                                                Authentication authentication,
                                                                Pageable pageable) {
@@ -48,11 +55,13 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Busca ticket por id")
     public ResponseEntity<TicketResponseDTO> getTicketById(@PathVariable Long id, Authentication authentication) {
         return ResponseEntity.ok(ticketService.getTicketById(id, authentication));
     }
 
     @PatchMapping("/{id}/assign")
+    @Operation(summary = "Atribui ticket a um técnico")
     public ResponseEntity<TicketResponseDTO> assignTicket(@PathVariable Long id,
                                                           @RequestBody @Valid AssignTicketRequestDTO technicianId,
                                                           Authentication authentication) {
@@ -63,6 +72,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/claim")
+    @Operation(summary = "Assume um ticket sem responsável")
     public ResponseEntity<TicketResponseDTO> claimTicket(@PathVariable Long id, Authentication authentication) {
         TicketResponseDTO response = ticketService.claimTicket(id, authentication);
 
@@ -70,6 +80,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/resolve")
+    @Operation(summary = "Resolve um ticket")
     public ResponseEntity<TicketResponseDTO> resolveTicket(@PathVariable Long id, Authentication authentication) {
         TicketResponseDTO response = ticketService.resolveTicket(id, authentication);
 
@@ -77,6 +88,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/close")
+    @Operation(summary = "Fecha um ticket resolvido")
     public ResponseEntity<TicketResponseDTO> closeTicket(@PathVariable Long id, Authentication authentication) {
         TicketResponseDTO response = ticketService.closeTicket(id, authentication);
 
@@ -84,6 +96,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/cancel")
+    @Operation(summary = "Cancela um ticket")
     public ResponseEntity<TicketResponseDTO> cancelTicket(@PathVariable Long id, Authentication authentication) {
         TicketResponseDTO response = ticketService.cancelTicket(id, authentication);
 
@@ -91,6 +104,7 @@ public class TicketController {
     }
 
     @GetMapping("/{ticketId}/history")
+    @Operation(summary = "Lista histórico do ticket")
     public ResponseEntity<Page<TicketHistoryResponseDTO>> listHistory(@PathVariable Long ticketId,
                                                                       Authentication authentication,
                                                                       Pageable pageable) {
@@ -105,6 +119,7 @@ public class TicketController {
     }
 
     @PostMapping("/{id}/comments")
+    @Operation(summary = "Adiciona comentário ao ticket")
     public ResponseEntity<TicketCommentResponseDTO> makeComment(@PathVariable Long id,
                                                                 @RequestBody @Valid TicketCommentRequestDTO dto,
                                                                 Authentication authentication) {
@@ -115,6 +130,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/comments")
+    @Operation(summary = "Lista comentários do ticket")
     public ResponseEntity<Page<TicketCommentResponseDTO>> listComments(@PathVariable long id,
                                                                        Authentication authentication,
                                                                        Pageable pageable) {
@@ -126,6 +142,7 @@ public class TicketController {
     }
 
     @PostMapping("/{ticketId}/rating")
+    @Operation(summary = "Cria avaliação para ticket fechado")
     public ResponseEntity<TicketRatingResponseDTO> createRating(@PathVariable Long ticketId,
                                                                 @RequestBody @Valid TicketRatingRequestDTO dto,
                                                                 Authentication authentication) {
@@ -136,6 +153,7 @@ public class TicketController {
     }
 
     @GetMapping("/{ticketId}/rating")
+    @Operation(summary = "Consulta avaliação do ticket")
     public ResponseEntity<TicketRatingResponseDTO> getRatingByTicket(@PathVariable Long ticketId,
                                                                      Authentication authentication) {
 

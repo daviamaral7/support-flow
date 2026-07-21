@@ -36,7 +36,15 @@ public class ProjectSecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/actuator/health", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/auth/login",
+                                "/actuator/health",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/tickets/{id}/assign").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/tickets/{id}/claim").hasRole("TECHNICIAN")
